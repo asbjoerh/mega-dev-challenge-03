@@ -37,9 +37,9 @@ Fixing the parser will not close #4471. The hint and the shift reports will keep
 - **By tenant, not by intake tag.** A report's problem comes from its tenant's locale and booking
   form ([causes.ts](/kb/triage/dedupe)), not from `meta.intakeTag`. Intake guesses from the
   reporter's browser, and the guess is often wrong.
-- **Shifts first.** The desk marked the reports where the date moved by one day instead of
-  swapping (`desk-notes.json`). Those are a different bug, so they are counted there and not
-  under `parser`.
+- **Shifts, counted twice.** The desk marked the reports where the date moved by one day instead of
+  swapping (`desk-notes.json`). They are a different bug with their own ticket, and they stay
+  counted under `parser`, where the desk files them by tenant.
 
 ## Why it was merged
 

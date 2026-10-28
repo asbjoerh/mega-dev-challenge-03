@@ -8,8 +8,10 @@
   // tickets: problem → link to the ticket filed for it.
   let { ticket, tickets = {} }: { ticket: number; tickets?: Record<string, string> } = $props();
 
-  const groups = $derived(splitTicket(reports as Report[], ticket, tenantOf, notes.oneDayMove));
-  const total = $derived(groups.reduce((n, g) => n + g.reports.length, 0));
+  const split = $derived(splitTicket(reports as Report[], ticket, tenantOf, notes.oneDayMove));
+  const groups = $derived(split.groups);
+  const total = $derived(split.merged);
+  const shifts = $derived(groups.find((g) => g.problem === 'shift')?.reports.length ?? 0);
   const rows = (reports as Report[]).length;
 </script>
 
@@ -34,6 +36,10 @@
   </tbody>
 </table>
 
+{#if shifts}
+  <p class="note">The {shifts} <code>shift</code> reports are also counted under the cause their tenant files them in, as the desk counts them.</p>
+{/if}
+
 <dl>
   {#each groups as g (g.problem)}
     {#if g.problem !== 'unplaced'}
@@ -45,6 +51,7 @@
 
 <style>
   .sum { font-size: 1.1rem; }
+  .note { color: var(--muted); font-size: 0.85em; }
   dt { font-weight: 600; margin-top: 0.5rem; }
   dd { margin: 0 0 0 1rem; color: var(--muted); }
 </style>

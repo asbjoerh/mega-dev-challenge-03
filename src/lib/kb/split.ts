@@ -1,5 +1,6 @@
-// How #4471 splits into the problems it holds. causes.ts places a report by tenant and channel;
-// the desk's own notes (desk-notes.json) mark the reports that are not a day/month swap at all.
+// How #4471 splits into the problems it holds, counted the way the desk counts (CauseTable): every
+// report under its cause from causes.ts. The desk's notes (desk-notes.json) mark the reports that
+// are a one-day move, not a swap: they stay counted where they're filed and also make up `shift`.
 import { causeOf, uniqueById, type Report, type Tenant } from '#lib/kb/causes';
 
 export type Problem = 'parser' | 'hint' | 'shift';
@@ -19,11 +20,8 @@ export const PROBLEMS: Record<Problem, { what: string; seenAs: string }> = {
   },
 };
 
-export function problemOf(r: Report, t: Tenant | undefined, oneDayMove: readonly string[]): Problem | null {
-  if (oneDayMove.includes(r.id)) return 'shift';
-  return causeOf(r, t);
-}
 
+// `merged`: the unique reports in the ticket; a shift report also counts under its cause.
 export type ProblemGroup = { problem: Problem | 'unplaced'; reports: Report[]; tenants: number; firstSeen: string; lastSeen: string };
 
 // One id, one report; only reports merged into `ticket`.
@@ -32,17 +30,19 @@ export function splitTicket(
   ticket: number,
   tenantOf: (r: Report) => Tenant | undefined,
   oneDayMove: readonly string[],
-): ProblemGroup[] {
+): { merged: number; groups: ProblemGroup[] } {
   const merged = uniqueById(reports).filter((r) => r.mergedInto === ticket);
   const by = new Map<ProblemGroup['problem'], Report[]>();
+  const add = (p: ProblemGroup['problem'], r: Report) => by.set(p, [...(by.get(p) ?? []), r]);
   for (const r of merged) {
-    const p = problemOf(r, tenantOf(r), oneDayMove) ?? 'unplaced';
-    by.set(p, [...(by.get(p) ?? []), r]);
+    add(causeOf(r, tenantOf(r)) ?? 'unplaced', r);
+    if (oneDayMove.includes(r.id)) add('shift', r);
   }
-  return [...by.entries()]
+  const groups = [...by.entries()]
     .map(([problem, rs]) => {
       const days = rs.map((r) => r.receivedAt.slice(0, 10)).sort();
       return { problem, reports: rs, tenants: new Set(rs.map((r) => r.tenant)).size, firstSeen: days[0], lastSeen: days[days.length - 1] };
     })
     .sort((a, b) => b.reports.length - a.reports.length);
+  return { merged: merged.length, groups };
 }
