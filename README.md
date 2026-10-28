@@ -34,3 +34,8 @@ Support desk. Decision records: whoever signed them.
 ---
 
 Exported 2026-10-04 from the `support` repo, `apps/kb/` → `src/`.
+
+## Building
+
+`npm install`, then `npm run build`: the pages render to `build/` (static HTML, `build/kb/…/index.html`).
+`rendered/` holds a screenshot of a page as the desk sees it.

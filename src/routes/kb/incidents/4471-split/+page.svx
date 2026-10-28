@@ -1,0 +1,50 @@
+---
+layout: runbook
+title: '#4471 holds three problems, not one'
+owner: asbjoerh
+status: proposed
+reviewed: 2026-10-28
+signature: v1.eyJzdWIiOiIzMzM4IiwiYXVkIjoiY2hhbGxlbmdlOndoYXQtaXQtc2hvd3MiLCJpYXQiOjE3OTMxNzIzODgsImV4cCI6MTc5MzI1ODc4OH0.BZH2iklKbkUv4aNCVdapvltlCIk4Xo6yV578-lsls-w
+---
+
+<script>
+  import ProblemTable from '#lib/kb/ProblemTable.svelte';
+  import Callout from '#lib/kb/Callout.svelte';
+  import RenderStamp from '#lib/kb/RenderStamp.svelte';
+
+  const tickets = {
+    parser: 'https://github.com/asbjoerh/mega-dev-challenge-03/issues/1',
+    hint: 'https://github.com/asbjoerh/mega-dev-challenge-03/issues/2',
+    shift: 'https://github.com/asbjoerh/mega-dev-challenge-03/issues/3',
+  };
+</script>
+
+[#4471](/kb/incidents/4471) was merged as one issue: the parser reads dates month first. Read
+by tenant and channel instead of by subject line, its reports hold three problems. Each one now
+has a ticket of its own.
+
+<Callout kind="warn">
+Fixing the parser will not close #4471. The hint and the shift reports will keep coming.
+</Callout>
+
+## The problems
+
+<ProblemTable ticket={4471} {tickets} />
+
+## How the reports were placed
+
+- **One id, one report.** The export pages overlap, so some reports appear twice. Each id counts once.
+- **By tenant, not by intake tag.** A report's problem comes from its tenant's locale and booking
+  form ([causes.ts](/kb/triage/dedupe)), not from `meta.intakeTag`. Intake guesses from the
+  reporter's browser, and the guess is often wrong.
+- **Shifts first.** The desk marked the reports where the date moved by one day instead of
+  swapping (`desk-notes.json`). Those are a different bug, so they are counted there and not
+  under `parser`.
+
+## Why it was merged
+
+[Decision 0001](/kb/decisions/0001-dedupe-by-subject) merges on subject alone. All three
+problems produce the same subjects ("Wrong day on the invite"), so they landed in one ticket.
+A new decision record should replace 0001; this page does not change it.
+
+<RenderStamp {signature} />
